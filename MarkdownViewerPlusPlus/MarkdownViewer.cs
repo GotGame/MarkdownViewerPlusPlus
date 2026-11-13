@@ -73,11 +73,6 @@ namespace com.insanitydesign.MarkdownViewerPlusPlus
         /// <summary>
         /// 
         /// </summary>
-        protected bool rendererVisible = false;
-
-        /// <summary>
-        /// 
-        /// </summary>
         protected bool updateRenderer = true;
 
         /// <summary>
@@ -132,6 +127,34 @@ namespace com.insanitydesign.MarkdownViewerPlusPlus
         /// <param name="notification"></param>
         public void OnNotification(ScNotification notification)
         {
+            // Once Notepad++ has finished starting up, restore the viewer to
+            // its persisted state (Bug A: persistence).
+            if (notification.Header.Code == (uint)NppMsg.NPPN_READY)
+            {
+                RestoreViewerVisibility();
+                return;
+            }
+
+            // Buffer switches and language changes must be handled even while
+            // the viewer is hidden, so a Markdown file can auto-enable it
+            // (Bug A: auto-enable, upstream #72 behaviour).
+            if (notification.Header.Code == (uint)NppMsg.NPPN_BUFFERACTIVATED
+                || notification.Header.Code == (uint)NppMsg.NPPN_LANGCHANGED)
+            {
+                //Update the scintilla handle in all cases to keep track of which instance is active
+                UpdateEditorInformation();
+                this.Editor.CurrentBufferID = notification.Header.IdFrom;
+                if (this.renderer.Visible)
+                {
+                    Update(true, true);
+                }
+                else if (IsMarkdownFile())
+                {
+                    ShowViewer();
+                }
+                return;
+            }
+
             //Listen to any UI update to get informed about all file changes, chars added/removed etc.
             if (this.renderer.Visible)
             {
@@ -141,13 +164,6 @@ namespace com.insanitydesign.MarkdownViewerPlusPlus
                     //Update the view
                     Update((notification.Updated & (uint)SciMsg.SC_UPDATE_V_SCROLL) != 0);
                 }
-                else if (notification.Header.Code == (uint)NppMsg.NPPN_BUFFERACTIVATED)
-                {
-                    //Update the scintilla handle in all cases to keep track of which instance is active
-                    UpdateEditorInformation();
-                    this.Editor.CurrentBufferID = notification.Header.IdFrom;
-                    Update(true, true);
-                }
                 else if (notification.Header.Code == (uint)SciMsg.SCN_MODIFIED && !this.updateRenderer)
                 {
                     bool isInsert = (notification.ModificationType & (uint)SciMsg.SC_MOD_INSERTTEXT) != 0;
@@ -156,6 +172,66 @@ namespace com.insanitydesign.MarkdownViewerPlusPlus
                     //Track if any text modifications have been made
                     this.updateRenderer = isInsert || isDelete;
                 }
+            }
+        }
+
+        /// <summary>
+        /// Restores the viewer after startup: show it again if it was visible
+        /// when Notepad++ last saved the options, or if the file active at
+        /// startup is a Markdown file (auto-enable). Otherwise leave it hidden.
+        /// </summary>
+        protected void RestoreViewerVisibility()
+        {
+            UpdateEditorInformation();
+            if (this.configuration.options.rendererVisible || IsMarkdownFile())
+            {
+                ShowViewer();
+            }
+        }
+
+        /// <summary>
+        /// Shows the viewer and renders the current file.
+        /// </summary>
+        protected void ShowViewer()
+        {
+            ToggleToolbarIcon(true);
+            UpdateEditorInformation();
+            Update(true, true);
+            Editor.SetFocus(true);
+        }
+
+        /// <summary>
+        /// Whether the current file is a Markdown file: its language is
+        /// Markdown (covers Language -&gt; Markdown on any extension) or its
+        /// extension is a Markdown extension (covers .md files whose language
+        /// is not set). Never true for a file the user's extension filter
+        /// excludes, since Update() would only show the "not included"
+        /// notice for it. Never auto-hides: callers only use this to show.
+        /// </summary>
+        protected bool IsMarkdownFile()
+        {
+            if (!this.configuration.ValidateFileExtension(this.FileInfo.FileExtension, this.FileInfo.FileName))
+            {
+                return false;
+            }
+            if (this.Notepad.GetCurrentLanguage() == LangType.L_MARKDOWN)
+            {
+                return true;
+            }
+            string extension = this.FileInfo.FileExtension;
+            if (extension == null)
+            {
+                return false;
+            }
+            switch (extension.ToLowerInvariant())
+            {
+                case "md":
+                case "markdown":
+                case "mdown":
+                case "mkd":
+                    return true;
+                default:
+                    return false;
             }
         }
 
@@ -296,14 +372,15 @@ The current file is <i>'{this.FileInfo.FileName}'</i>.
         public void MarkdownViewerCommand()
         {
             bool visibility = !this.renderer.Visible;
-            ToggleToolbarIcon(visibility);
             //Show
             if (visibility)
             {
-                UpdateEditorInformation();
-                Update(true, true);
-                Editor.SetFocus(true);
-            }            
+                ShowViewer();
+            }
+            else
+            {
+                ToggleToolbarIcon(false);
+            }
         }
 
         /// <summary>
@@ -331,7 +408,16 @@ The current file is <i>'{this.FileInfo.FileName}'</i>.
             Win32.SendMessage(PluginBase.nppData._nppHandle, (uint)msg, 0, this.renderer.Handle);
             Win32.SendMessage(PluginBase.nppData._nppHandle, (uint)NppMsg.NPPM_SETMENUITEMCHECK, PluginBase._funcItems.Items[this.commandId]._cmdID, show ? 1 : 0);
             //
-            this.rendererVisible = this.renderer.Visible;
+            // Persist the visibility so the viewer is restored to the same
+            // state on the next start (Bug A). Saved immediately, not only on
+            // clean shutdown, so a crash does not lose the toggle. Persist the
+            // requested state: the old in-memory field read renderer.Visible
+            // back here, but that field was never read anywhere.
+            if (this.configuration != null)
+            {
+                this.configuration.options.rendererVisible = show;
+                this.configuration.Save();
+            }
         }
 
         /// <summary>

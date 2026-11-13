@@ -12,6 +12,11 @@ namespace Kbg.NppPluginNET.PluginInfrastructure
 		string GetCurrentFilePath();
 		unsafe string GetFilePath(int bufferId);
 		void SetCurrentLanguage(LangType language);
+		/// <summary>
+		/// Returns the response from NPPM_GETCURRENTLANGTYPE
+		/// </summary>
+		/// <returns></returns>
+		LangType GetCurrentLanguage();
         /// <summary>
         /// Returns the response from NPPM_GETFILENAME 
         /// </summary>
@@ -82,6 +87,16 @@ namespace Kbg.NppPluginNET.PluginInfrastructure
 		public void SetCurrentLanguage(LangType language)
 		{
 			Win32.SendMessage(PluginBase.nppData._nppHandle, (uint) NppMsg.NPPM_SETCURRENTLANGTYPE, Unused, (int) language);
+		}
+
+		/// <summary>
+		/// Gets the language type of the current document.
+		/// </summary>
+		public LangType GetCurrentLanguage()
+		{
+			LangType language = LangType.L_TEXT;
+			Win32.SendMessage(PluginBase.nppData._nppHandle, (uint) NppMsg.NPPM_GETCURRENTLANGTYPE, Unused, ref language);
+			return language;
 		}
 	}
 

@@ -34,6 +34,11 @@ namespace com.insanitydesign.MarkdownViewerPlusPlus
             /// </summary>
             public bool inclNewFiles;
             /// <summary>
+            /// Whether the viewer panel was visible when Notepad++ last saved
+            /// the options (persisted across restarts; see Bug A in #183).
+            /// </summary>
+            public bool rendererVisible;
+            /// <summary>
             /// 
             /// </summary>
             private string htmlCssStyle;
@@ -46,7 +51,15 @@ namespace com.insanitydesign.MarkdownViewerPlusPlus
                     return htmlCssStyle.Replace(@" \n ", Environment.NewLine);
                 }
                 set {
-                    htmlCssStyle = value.Replace(Environment.NewLine, @" \n ");
+                    // The .ini stores single-line values, so every line break
+                    // must be encoded before saving. The old code only encoded
+                    // Environment.NewLine (CRLF); a lone LF (e.g. pasted CSS
+                    // with Unix line endings) or lone CR slipped through raw,
+                    // and WritePrivateProfileString truncated the stored value
+                    // at the first line break -- leaving only the first line
+                    // (e.g. "body {") after a restart. Normalise all line
+                    // endings to LF first, then encode them all.
+                    htmlCssStyle = value == null ? null : value.Replace("\r\n", "\n").Replace("\r", "\n").Replace("\n", @" \n ");
                 }
             }
             /// <summary>
@@ -218,6 +231,7 @@ namespace com.insanitydesign.MarkdownViewerPlusPlus
                 pdfOrientation = PageOrientation.Portrait,
                 pdfPageSize = PageSize.A4,
                 synchronizeScrolling = false,
+                rendererVisible = false,
                 margins = "5,5,5,5",
                 pdfOpenExport = false,
                 htmlOpenExport = false
