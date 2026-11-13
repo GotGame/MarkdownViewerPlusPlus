@@ -37,14 +37,20 @@ namespace Kbg.NppPluginNET.PluginInfrastructure
     [StructLayout(LayoutKind.Sequential)]
     public struct ScNotification
     {
+        // NOTE: position, length, linesAdded, line and annotationLinesAdded are
+        // Sci_Position in the native struct (an alias for intptr_t), so they are
+        // 8 bytes on x64 and 4 bytes on x86. Declaring them as IntPtr keeps this
+        // layout in sync with the native struct on both platforms; declaring them
+        // as int shifted every following field on x64, so ModificationType and
+        // Updated were read from the wrong offsets (see #143 / #175).
         public ScNotificationHeader Header;
-        private int position;               /* SCN_STYLENEEDED, SCN_DOUBLECLICK, SCN_MODIFIED, SCN_MARGINCLICK, SCN_NEEDSHOWN, SCN_DWELLSTART, SCN_DWELLEND, SCN_CALLTIPCLICK, SCN_HOTSPOTCLICK, SCN_HOTSPOTDOUBLECLICK, SCN_HOTSPOTRELEASECLICK, SCN_INDICATORCLICK, SCN_INDICATORRELEASE, SCN_USERLISTSELECTION, SCN_AUTOCSELECTION */
+        private IntPtr position;            /* SCN_STYLENEEDED, SCN_DOUBLECLICK, SCN_MODIFIED, SCN_MARGINCLICK, SCN_NEEDSHOWN, SCN_DWELLSTART, SCN_DWELLEND, SCN_CALLTIPCLICK, SCN_HOTSPOTCLICK, SCN_HOTSPOTDOUBLECLICK, SCN_HOTSPOTRELEASECLICK, SCN_INDICATORCLICK, SCN_INDICATORRELEASE, SCN_USERLISTSELECTION, SCN_AUTOCSELECTION */
         public int character;               /* SCN_CHARADDED, SCN_KEY, SCN_AUTOCCOMPLETE, SCN_AUTOCSELECTION, SCN_USERLISTSELECTION */
         public int Mmodifiers;              /* SCN_KEY, SCN_DOUBLECLICK, SCN_HOTSPOTCLICK, SCN_HOTSPOTDOUBLECLICK, SCN_HOTSPOTRELEASECLICK, SCN_INDICATORCLICK, SCN_INDICATORRELEASE */
         public int ModificationType;        /* SCN_MODIFIED - modification types are name "SC_MOD_*" */
         public IntPtr TextPointer;          /* SCN_MODIFIED, SCN_USERLISTSELECTION, SCN_AUTOCSELECTION, SCN_URIDROPPED */
-        public int Length;                  /* SCN_MODIFIED */
-        public int LinesAdded;              /* SCN_MODIFIED */
+        public IntPtr Length;               /* SCN_MODIFIED */
+        public IntPtr LinesAdded;           /* SCN_MODIFIED */
         public int Message;                 /* SCN_MACRORECORD */
         public IntPtr wParam;               /* SCN_MACRORECORD */
         public IntPtr lParam;               /* SCN_MACRORECORD */
@@ -52,7 +58,7 @@ namespace Kbg.NppPluginNET.PluginInfrastructure
         /// <summary>
         /// 0-based index
         /// </summary>
-        public int LineNumber;           /* SCN_MODIFIED */
+        public IntPtr LineNumber;        /* SCN_MODIFIED */
         public int FoldLevelNow;         /* SCN_MODIFIED */
         public int FoldLevelPrev;        /* SCN_MODIFIED */
         public int Margin;               /* SCN_MARGINCLICK */
@@ -60,14 +66,16 @@ namespace Kbg.NppPluginNET.PluginInfrastructure
         public int X;                    /* SCN_DWELLSTART, SCN_DWELLEND */
         public int Y;                    /* SCN_DWELLSTART, SCN_DWELLEND */
         public int Token;                /* SCN_MODIFIED with SC_MOD_CONTAINER */
-        public int AnnotationLinesAdded; /* SC_MOD_CHANGEANNOTATION */
+        public IntPtr AnnotationLinesAdded; /* SC_MOD_CHANGEANNOTATION */
         public int Updated;              /* SCN_UPDATEUI */
         public int ListCompletionMethod; /* SCN_AUTOCSELECTION, SCN_AUTOCCOMPLETED, SCN_USERLISTSELECTION */
 
         /// <summary>
         /// SCN_STYLENEEDED, SCN_DOUBLECLICK, SCN_MODIFIED, SCN_MARGINCLICK, SCN_NEEDSHOWN, SCN_DWELLSTART, SCN_DWELLEND, SCN_CALLTIPCLICK, SCN_HOTSPOTCLICK, SCN_HOTSPOTDOUBLECLICK, SCN_HOTSPOTRELEASECLICK, SCN_INDICATORCLICK, SCN_INDICATORRELEASE, SCN_USERLISTSELECTION, SCN_AUTOCSELECTION
         /// </summary>
-        public Position Position { get { return new Position(position); } }
+        // The Position API is 32-bit, so a native position is truncated to its
+        // low 32 bits here, as before; only the struct layout is corrected.
+        public Position Position { get { return new Position(unchecked((int)position.ToInt64())); } }
 
         /// <summary>
         /// Character of the notification - eg keydown

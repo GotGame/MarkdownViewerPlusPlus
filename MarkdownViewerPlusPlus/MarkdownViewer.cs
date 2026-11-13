@@ -195,7 +195,11 @@ The current file is <i>'{this.FileInfo.FileName}'</i>.
         {
             try
             {
-                ScrollInfo scrollInfo = this.Editor.GetScrollInfo(ScrollInfoMask.SIF_RANGE | ScrollInfoMask.SIF_TRACKPOS | ScrollInfoMask.SIF_PAGE, ScrollInfoBar.SB_VERT);
+                // NOTE: nTrackPos is only valid while the user is dragging the
+                // scroll thumb; for wheel, keyboard and click scrolling it holds
+                // a stale value, so the viewer never followed those. nPos is the
+                // scroll box position for all scroll paths, so use it instead.
+                ScrollInfo scrollInfo = this.Editor.GetScrollInfo(ScrollInfoMask.SIF_RANGE | ScrollInfoMask.SIF_POS | ScrollInfoMask.SIF_TRACKPOS | ScrollInfoMask.SIF_PAGE, ScrollInfoBar.SB_VERT);
                 double totalRange = scrollInfo.nMax - scrollInfo.nMin + 1;
                 double scrollRatio;
 
@@ -203,13 +207,13 @@ The current file is <i>'{this.FileInfo.FileName}'</i>.
                 if (Editor.GetEndAtLastLine() == false)
                 {
                     var actualThumbHeight = totalRange / (totalRange / scrollInfo.nPage - 1);
-                    var actualTrackPos = scrollInfo.nTrackPos * actualThumbHeight / scrollInfo.nPage;
+                    var actualScrollPos = scrollInfo.nPos * actualThumbHeight / scrollInfo.nPage;
 
-                    scrollRatio = Math.Min(1, actualTrackPos / (totalRange - actualThumbHeight));
+                    scrollRatio = Math.Min(1, actualScrollPos / (totalRange - actualThumbHeight));
                 }
                 else
                 {
-                    scrollRatio = scrollInfo.nTrackPos / (totalRange - scrollInfo.nPage);
+                    scrollRatio = scrollInfo.nPos / (totalRange - scrollInfo.nPage);
                 }
 
                 this.renderer.ScrollByRatioVertically(scrollRatio);
