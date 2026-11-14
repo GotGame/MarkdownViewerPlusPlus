@@ -54,7 +54,10 @@ namespace com.insanitydesign.MarkdownViewerPlusPlus.Forms
         public override void Render(string text, FileInformation fileInfo)
         {
             base.Render(text, fileInfo);
-            this.markdownViewerHtmlPanel.Text = BuildHtml(ConvertedText, fileInfo.FileName);
+            //Keep the control background in step with the themed CSS: the HTML body
+            //paints the content area, BackColor paints the rest of the panel.
+            this.markdownViewerHtmlPanel.BackColor = IsDarkTheme() ? DarkViewerBackground : Color.White;
+            this.markdownViewerHtmlPanel.Text = BuildHtml(ConvertedText, fileInfo.FileName, true);
         }
 
         /// <summary>

@@ -19,6 +19,7 @@ using System.IO;
 using System.Net;
 using com.insanitydesign.MarkdownViewerPlusPlus.Helper;
 using static com.insanitydesign.MarkdownViewerPlusPlus.MarkdownViewer;
+using static com.insanitydesign.MarkdownViewerPlusPlus.MarkdownViewerConfiguration;
 using Markdig;
 using System.Text.RegularExpressions;
 using System.Linq;
@@ -73,6 +74,12 @@ namespace com.insanitydesign.MarkdownViewerPlusPlus.Forms
         /// 
         /// </summary>
         protected string patternCSSImportStatements = "(@import\\s.+;)";
+
+        /// <summary>
+        /// Dark viewer background. Must match the body background in the dark
+        /// theme CSS or the panel edge will show a seam.
+        /// </summary>
+        protected static readonly Color DarkViewerBackground = Color.FromArgb(0x1E, 0x1E, 0x1E);
 
         /// <summary>
         /// 
@@ -140,6 +147,15 @@ namespace com.insanitydesign.MarkdownViewerPlusPlus.Forms
                         this.markdownViewer.ToggleToolbarIcon(false);
                     }
                     break;
+                case (int)WM_THEMECHANGED:
+                    //Windows switched its light/dark setting: re-render so a viewer
+                    //following the system theme picks up the new effective theme.
+                    //A fixed Light/Dark choice is unaffected by the switch.
+                    if (this.markdownViewer.Options.theme == ViewerTheme.System)
+                    {
+                        this.markdownViewer.Update(true, true);
+                    }
+                    break;
             }
             //Continue the processing, as we only toggle
             base.WndProc(ref m);
@@ -180,7 +196,7 @@ namespace com.insanitydesign.MarkdownViewerPlusPlus.Forms
         /// <param name="html"></param>
         /// <param name="title"></param>
         /// <returns></returns>
-        protected string BuildHtml(string html = "", string title = "")
+        protected string BuildHtml(string html = "", string title = "", bool includeTheme = false)
         {
             //
             if (title == "") title = this.assemblyTitle;
@@ -193,7 +209,7 @@ namespace com.insanitydesign.MarkdownViewerPlusPlus.Forms
         <meta name=""author"" content=""{this.assemblyTitle}"" />
         <title>{title}</title>
         <style type=""text/css"">
-            {this.getCSS()}
+            {this.getCSS(includeTheme)}
         </style>
       </head>
     <body>
@@ -348,10 +364,39 @@ namespace com.insanitydesign.MarkdownViewerPlusPlus.Forms
         }
 
         /// <summary>
+        /// Reads the Windows dark-mode setting: AppsUseLightTheme 0 means dark.
+        /// Any failure (missing key, no access) falls back to light.
+        /// </summary>
+        /// <returns></returns>
+        protected bool IsSystemDarkMode()
+        {
+            try
+            {
+                object value = Microsoft.Win32.Registry.GetValue(@"HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize", "AppsUseLightTheme", 1);
+                return value != null && Convert.ToInt32(value) == 0;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Whether the viewer currently renders dark: Dark always, System when
+        /// Windows is dark, Light never.
+        /// </summary>
+        /// <returns></returns>
+        protected bool IsDarkTheme()
+        {
+            ViewerTheme theme = this.markdownViewer.Options.theme;
+            return theme == ViewerTheme.Dark || (theme == ViewerTheme.System && IsSystemDarkMode());
+        }
+
+        /// <summary>
         /// 
         /// </summary>
         /// <returns></returns>
-        protected virtual String getCSS()
+        protected virtual String getCSS(bool includeTheme = false)
         {
             string cssImportStatements = "";
             
@@ -359,8 +404,9 @@ namespace com.insanitydesign.MarkdownViewerPlusPlus.Forms
             List<Match> matches = Regex.Matches(this.markdownViewer.Options.HtmlCssStyle, this.patternCSSImportStatements).Cast<Match>().ToList();
             matches.ForEach(match => match.Captures.Cast<Capture>().ToList().ForEach(capture => cssImportStatements += capture.Value + Environment.NewLine));            
             
-            //Return a CSS with the @import statements in front, the base MarkdownViewer++ CSS and the rest of the custom CSS from the user
-            return cssImportStatements + Environment.NewLine + Resources.MarkdownViewerHTML + Environment.NewLine + Regex.Replace(this.markdownViewer.Options.HtmlCssStyle, this.patternCSSImportStatements, "").Trim();
+            //Return a CSS with the @import statements in front, the base MarkdownViewer++ CSS, the dark theme CSS (viewer only) and the rest of the custom CSS from the user, so user overrides keep winning
+            string themeCss = (includeTheme && IsDarkTheme()) ? Resources.MarkdownViewerHTMLDark + Environment.NewLine : "";
+            return cssImportStatements + Environment.NewLine + Resources.MarkdownViewerHTML + Environment.NewLine + themeCss + Regex.Replace(this.markdownViewer.Options.HtmlCssStyle, this.patternCSSImportStatements, "").Trim();
         }
 
         /// <summary>

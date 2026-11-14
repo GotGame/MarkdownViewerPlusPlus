@@ -17,6 +17,27 @@ namespace com.insanitydesign.MarkdownViewerPlusPlus
     public class MarkdownViewerConfiguration
     {
         /// <summary>
+        /// Viewer color theme. Persisted in the .ini by the reflection-based
+        /// Load()/Save() as the enum name; System (0) is the default, so a
+        /// missing or unreadable value falls back to following Windows.
+        /// </summary>
+        public enum ViewerTheme
+        {
+            /// <summary>
+            /// Follow the Windows dark/light setting (AppsUseLightTheme).
+            /// </summary>
+            System,
+            /// <summary>
+            /// Always the light appearance.
+            /// </summary>
+            Light,
+            /// <summary>
+            /// Always the dark appearance.
+            /// </summary>
+            Dark
+        }
+
+        /// <summary>
         /// 
         /// </summary>
         public struct Options
@@ -86,6 +107,12 @@ namespace com.insanitydesign.MarkdownViewerPlusPlus
             /// 
             /// </summary>
             public bool htmlOpenExport;
+
+            /// <summary>
+            /// Viewer color theme (System/Light/Dark). Picked up by the
+            /// reflection-based Load()/Save() like the other enum options.
+            /// </summary>
+            public ViewerTheme theme;
         }
 
         /// <summary>
@@ -220,7 +247,8 @@ namespace com.insanitydesign.MarkdownViewerPlusPlus
                 synchronizeScrolling = false,
                 margins = "5,5,5,5",
                 pdfOpenExport = false,
-                htmlOpenExport = false
+                htmlOpenExport = false,
+                theme = ViewerTheme.System
             };
             return options;
         }

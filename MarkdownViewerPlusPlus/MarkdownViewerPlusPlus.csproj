@@ -255,6 +255,7 @@
     <None Include="Resources\fa-print-16x16.png" />
     <None Include="Resources\fa-envelope-16x16.png" />
     <EmbeddedResource Include="Resources\MarkdownViewerHTML.css" />
+    <EmbeddedResource Include="Resources\MarkdownViewerHTMLDark.css" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="ILMergeOrder.txt" />

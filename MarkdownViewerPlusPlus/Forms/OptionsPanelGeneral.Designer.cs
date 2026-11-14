@@ -34,7 +34,11 @@
             this.toolTipFileExtensions = new System.Windows.Forms.ToolTip(this.components);
             this.grpBoxFiles = new System.Windows.Forms.GroupBox();
             this.txtFileExtensions = new System.Windows.Forms.TextBox();
+            this.lblTheme = new System.Windows.Forms.Label();
+            this.cmbTheme = new System.Windows.Forms.ComboBox();
+            this.grpBoxTheme = new System.Windows.Forms.GroupBox();
             this.grpBoxFiles.SuspendLayout();
+            this.grpBoxTheme.SuspendLayout();
             this.SuspendLayout();
             // 
             // lblFileExtensions
@@ -87,16 +91,53 @@
             this.txtFileExtensions.Size = new System.Drawing.Size(1240, 20);
             this.txtFileExtensions.TabIndex = 1;
             // 
+            // lblTheme
+            // 
+            this.lblTheme.AutoSize = true;
+            this.lblTheme.Location = new System.Drawing.Point(6, 16);
+            this.lblTheme.Name = "lblTheme";
+            this.lblTheme.Size = new System.Drawing.Size(41, 13);
+            this.lblTheme.TabIndex = 0;
+            this.lblTheme.Text = "Theme";
+            // 
+            // cmbTheme
+            // 
+            this.cmbTheme.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.cmbTheme.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cmbTheme.FormattingEnabled = true;
+            this.cmbTheme.Location = new System.Drawing.Point(9, 32);
+            this.cmbTheme.Name = "cmbTheme";
+            this.cmbTheme.Size = new System.Drawing.Size(1240, 21);
+            this.cmbTheme.TabIndex = 1;
+            // 
+            // grpBoxTheme
+            // 
+            this.grpBoxTheme.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.grpBoxTheme.Controls.Add(this.lblTheme);
+            this.grpBoxTheme.Controls.Add(this.cmbTheme);
+            this.grpBoxTheme.Dock = System.Windows.Forms.DockStyle.Top;
+            this.grpBoxTheme.Location = new System.Drawing.Point(0, 86);
+            this.grpBoxTheme.Name = "grpBoxTheme";
+            this.grpBoxTheme.Size = new System.Drawing.Size(1255, 61);
+            this.grpBoxTheme.TabIndex = 4;
+            this.grpBoxTheme.TabStop = false;
+            this.grpBoxTheme.Text = "Theme";
+            // 
             // OptionsPanelGeneral
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
             this.Controls.Add(this.grpBoxFiles);
+            this.Controls.Add(this.grpBoxTheme);
+            this.Controls.SetChildIndex(this.grpBoxTheme, 0);
             this.Name = "OptionsPanelGeneral";
             this.Size = new System.Drawing.Size(1255, 626);
             this.grpBoxFiles.ResumeLayout(false);
             this.grpBoxFiles.PerformLayout();
+            this.grpBoxTheme.ResumeLayout(false);
+            this.grpBoxTheme.PerformLayout();
             this.ResumeLayout(false);
 
         }
@@ -108,5 +149,8 @@
         private System.Windows.Forms.ToolTip toolTipFileExtensions;
         private System.Windows.Forms.GroupBox grpBoxFiles;
         private System.Windows.Forms.TextBox txtFileExtensions;
+        private System.Windows.Forms.Label lblTheme;
+        private System.Windows.Forms.ComboBox cmbTheme;
+        private System.Windows.Forms.GroupBox grpBoxTheme;
     }
 }

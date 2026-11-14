@@ -1,0 +1,55 @@
+/* Dark theme for the viewer (original stylesheet, written for MarkdownViewer++).
+   Applied after the base CSS and before the user Custom CSS, so user rules keep
+   winning. Only the HtmlRenderer-supported subset is used: plain element and
+   descendant selectors, hex colors, borders, padding and margins.
+   The body background must match DarkViewerBackground in Forms/AbstractRenderer.cs
+   or the panel edge will show a seam. Images are deliberately left untouched. */
+html, body {
+    background-color: #1e1e1e;
+    color: #d4d4d4;
+}
+h1, h2, h3, h4, h5, h6 {
+    color: #e8e8e8;
+}
+h1, h2 {
+    border-bottom: 1px solid #3e3e3e;
+}
+a {
+    color: #6cb6ff;
+}
+code {
+    background-color: #2d2d2d;
+    color: #e8e8e8;
+}
+pre {
+    background-color: #252526;
+    border: 1px solid #3e3e3e;
+    color: #d4d4d4;
+    padding: 10px;
+}
+pre code {
+    background-color: #252526;
+}
+blockquote {
+    background-color: #252526;
+    border-left: 4px solid #4d4d4d;
+    color: #9e9e9e;
+    padding: 6px 10px;
+}
+table {
+    border: 1px solid #3e3e3e;
+}
+th {
+    background-color: #2d2d2d;
+    border: 1px solid #3e3e3e;
+    color: #e8e8e8;
+}
+td {
+    border: 1px solid #3e3e3e;
+}
+hr {
+    border-color: #3e3e3e;
+}
+li {
+    color: #d4d4d4;
+}

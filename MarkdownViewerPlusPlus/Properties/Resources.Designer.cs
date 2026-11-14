@@ -221,5 +221,14 @@ namespace com.insanitydesign.MarkdownViewerPlusPlus.Properties {
                 return ResourceManager.GetString("MarkdownViewerHTML", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to the dark theme stylesheet for the viewer.
+        /// </summary>
+        internal static string MarkdownViewerHTMLDark {
+            get {
+                return ResourceManager.GetString("MarkdownViewerHTMLDark", resourceCulture);
+            }
+        }
     }
 }

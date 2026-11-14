@@ -33,6 +33,8 @@ namespace com.insanitydesign.MarkdownViewerPlusPlus.Forms
             this.txtFileExtensions.Enter += txtFileExtensions_Enter;
             this.txtFileExtensions.Leave += txtFileExtensions_Leave;
             this.txtFileExtensions.Validating += txtFileExtensions_Validating;
+            //Theme choices shown as System/Light/Dark; SelectedItem is the enum value
+            this.cmbTheme.DataSource = Enum.GetValues(typeof(ViewerTheme));
         }
 
         /// <summary>
@@ -81,6 +83,10 @@ namespace com.insanitydesign.MarkdownViewerPlusPlus.Forms
         {
             options.inclNewFiles = this.chkBoxNewFiles.Checked;
             options.fileExtensions = this.txtFileExtensions.Text;
+            if (this.cmbTheme.SelectedItem != null)
+            {
+                options.theme = (ViewerTheme)this.cmbTheme.SelectedItem;
+            }
         }
 
         /// <summary>
@@ -90,6 +96,7 @@ namespace com.insanitydesign.MarkdownViewerPlusPlus.Forms
         {
             this.chkBoxNewFiles.Checked = options.inclNewFiles;
             this.txtFileExtensions.Text = options.fileExtensions;
+            this.cmbTheme.SelectedItem = options.theme;
         }
     }
 }
